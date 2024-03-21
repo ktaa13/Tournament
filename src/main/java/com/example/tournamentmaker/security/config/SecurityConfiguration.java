@@ -15,9 +15,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.Customizer.withDefaults;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -69,5 +74,41 @@ public class SecurityConfiguration {
         ;
 
         return http.build();
+    }
+    
+    @Bean(name = "corsConfigurationSource")
+    public CorsConfigurationSource corsConfiguration() {
+
+        final CorsConfiguration corsConfiguration = new CorsConfiguration();
+
+
+        corsConfiguration.setAllowedOriginPatterns(List.of("*"));
+
+        corsConfiguration.setAllowedMethods(
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE"
+                )
+        );
+
+
+        corsConfiguration.setAllowedHeaders(
+                List.of(
+                        "Authorization",
+                        "Content-Type",
+                        "Access-Control-Allow-Origin",
+                        "Access-Control-Allow-Headers",
+                        "Access-Control-Expose-Headers"
+                ));
+
+        corsConfiguration.setAllowCredentials(true);
+
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", corsConfiguration);
+
+        return source;
     }
 }
