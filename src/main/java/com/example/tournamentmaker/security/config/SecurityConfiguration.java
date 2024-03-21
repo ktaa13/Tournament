@@ -5,6 +5,7 @@ import com.example.tournamentmaker.user.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
 import static org.springframework.http.HttpMethod.*;
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -33,7 +35,13 @@ public class SecurityConfiguration {
                 .csrf()
                 .disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/api/v1/auth/**")
+                .requestMatchers(HttpMethod.POST,"/api/v1/auth/**",
+                        "/api/v1/auth/register/**",
+                        "/api/v1/auth/refresh-token",
+                        "/api/v1/auth/enable-user/**",
+                        "/api/v1/auth/authenticate",
+                        "/api/v1/auth/forgot-password",
+                        "/api/v1/auth/reset-password")
                 .permitAll()
                 .requestMatchers("/api/v1/management/**").hasAnyRole(Role.ADMIN.name(), Role.MANAGER.name())
                 .requestMatchers(GET, "/api/v1/management/**").hasAnyAuthority(PermissionEnum.ADMIN_READ.name(),
@@ -51,10 +59,13 @@ public class SecurityConfiguration {
                 .and()
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                // set up the CORS configuration
+                .cors(withDefaults()) // by default uses a Bean by the name of corsConfigurationSource
                 .logout()
                 .logoutUrl("/api/v1/auth/logout")
                 .addLogoutHandler(logoutHandler)
                 .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
+                
         ;
 
         return http.build();
